@@ -8,3 +8,5 @@ mkdir test && cd test
 ```
 
 ![alt text](copycat.png "Example")
+
+![alt text](copycat_2.png "Example_2")
