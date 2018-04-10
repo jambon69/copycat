@@ -97,7 +97,6 @@ def main():
     soup = BeautifulSoup(req.text, "lxml")
 
     # Let's gather all scripts
-    # print bcolors.OKGREEN + "---------" + "Gathering scripts" + "---------" + bcolors.ENDC
     basicLog("Gathering scripts", bcolors.OKGREEN)
     scripts = []
     for script in soup.find_all('script'):

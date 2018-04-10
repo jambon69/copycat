@@ -7,6 +7,6 @@ mkdir test && cd test
 ../copycat.py  "https://www.tutorialspoint.com" "/python/string_join.htm"
 ```
 
-![alt text](copycat.png "Example")
+![alt text](screenshots/copycat.png "Example")
 
-![alt text](copycat_2.png "Example_2")
+![alt text](screenshots/copycat_2.png "Example_2")
