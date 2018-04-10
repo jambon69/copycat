@@ -7,6 +7,7 @@ from io import BytesIO
 import sys
 import requests
 import os
+import argparse
 
 class bcolors:
     HEADER = '\033[95m'
@@ -18,15 +19,19 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-def usage():
-    print "copycat.py baseURL extension"
 
-if len(sys.argv) != 3:
-    usage()
-    exit(1)
+parser = argparse.ArgumentParser(description='Copy client side files from another website',
+                                 epilog='copycat.py "https://github.com" "/jambon69/copycat"')
+parser.add_argument('baseurl', type=str,
+                    help='base URL of the victim website')
+parser.add_argument('endpoint', type=str,
+                    help='endpoint of the victim page')
 
-baseURL = sys.argv[1]
-extURL = sys.argv[2]
+args = parser.parse_args()
+
+baseURL = args.baseurl
+extURL = args.endpoint
+
 
 # Start creating directory architecture
 try:
@@ -35,13 +40,10 @@ try:
 except OSError as e:
     pass
 
-req = requests.get(baseURL + extURL)
-soup = BeautifulSoup(req.text, "lxml")
-
 # Get locale files
-def fetchLocalFile(script):
+def fetchLocalFile(fileName):
     # Get only directories, without filename
-    sep = script.split('/')
+    sep = fileName.split('/')
     path = '/'.join(sep[:-1])
 
     # We create the directory if he doesn't exist
@@ -52,23 +54,23 @@ def fetchLocalFile(script):
         pass
 
     # Don't take the req parameters into account
-    req = requests.get(baseURL + '/' + script)
+    req = requests.get(baseURL + '/' + fileName)
 
     color = bcolors.OKBLUE
     if req.status_code == 404:
         color = bcolors.FAIL
 
-    print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + '/' + script
+    print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + '/' + fileName
 
     if req.status_code == 404:
         pass
     elif "image" in req.headers['Content-Type']:
         img = Image.open(BytesIO(req.content))
-        img.save(script)
+        img.save(fileName)
     else:
-        scriptFile = open(script.split('?')[0], 'w+')
-        scriptFile.write(req.text.encode('utf-8'))
-        scriptFile.close()
+        newFile = open(fileName.split('?')[0], 'w+')
+        newFile.write(req.text.encode('utf-8'))
+        newFile.close()
 
 # get Full path of local file
 def getFullPath(fullName):
@@ -80,44 +82,60 @@ def getFullPath(fullName):
 # Gets all the files
 def fetchFiles(filesName):
     for filename in filesName:
-        # We only need local filenames
+        # We only need local files
         if (filename[0:2] != '//' and filename[0] == '/') or filename[0:3] == '../' or filename[0:2] == './':
             # We erase the first '/'
             fetchLocalFile(getFullPath(filename)[1:])
 
-# Let's gather all scripts
-scripts = []
-for script in soup.find_all('script'):
-    try:
-        if len(script['src']) > 0:
-            scripts.append(script['src'])
-    except:
-        pass
-fetchFiles(scripts)
+def basicLog(msg, color):
+    if len(msg) % 2 != 0:
+        msg = "-" + msg
+    print color + "-" * ((50-len(msg)) / 2) + msg + "-" * ((50-len(msg)) / 2) + bcolors.ENDC
+    
+def main():
+    req = requests.get(baseURL + extURL)
+    soup = BeautifulSoup(req.text, "lxml")
 
-# Let's get images now !
-images = []
-for image in soup.find_all('img'):
-    try:
-        if len(image['src']) > 0:
-            images.append(image['src'])
-    except:
-        pass
-fetchFiles(images)
+    # Let's gather all scripts
+    # print bcolors.OKGREEN + "---------" + "Gathering scripts" + "---------" + bcolors.ENDC
+    basicLog("Gathering scripts", bcolors.OKGREEN)
+    scripts = []
+    for script in soup.find_all('script'):
+        try:
+            if len(script['src']) > 0:
+                scripts.append(script['src'])
+        except:
+            pass
+    fetchFiles(scripts)
 
-# Let's get all the links \o/
-links = []
-for link in soup.find_all('link'):
-    try:
-        if len(link['href']) > 0:
-            links.append(link['href'])
-    except:
-        pass
-fetchFiles(links)
+    # Let's get images now !
+    basicLog("Gathering images", bcolors.OKGREEN)
+    images = []
+    for image in soup.find_all('img'):
+        try:
+            if len(image['src']) > 0:
+                images.append(image['src'])
+        except:
+            pass
+    fetchFiles(images)
 
-filename = getFullPath(extURL)
-if len(os.path.basename(extURL)) > 0:
-    newFile = open(filename[1:], 'w+')
-else:
-    newFile = open('index.html', 'w+')
-newFile.write(str(soup))
+    # Let's get all the links \o/
+    basicLog("Gathering links", bcolors.OKGREEN)
+    links = []
+    for link in soup.find_all('link'):
+        try:
+            if len(link['href']) > 0:
+                links.append(link['href'])
+        except:
+            pass
+    fetchFiles(links)
+
+    filename = getFullPath(extURL)
+    if len(os.path.basename(extURL)) > 0:
+        newFile = open(filename[1:], 'w+')
+    else:
+        newFile = open('index.html', 'w+')
+    newFile.write(str(soup))
+    newFile.close()
+
+main()

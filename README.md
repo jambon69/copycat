@@ -6,3 +6,5 @@ Copies a certain html page with all its CSS, JS and images
 mkdir test && cd test
 ../copycat.py  "https://www.tutorialspoint.com" "/python/string_join.htm"
 ```
+
+![alt text](copycat.png "Example")
