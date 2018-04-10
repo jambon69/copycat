@@ -42,13 +42,9 @@ except OSError as e:
 
 # Get locale files
 def fetchLocalFile(fileName):
-    # Get only directories, without filename
-    sep = fileName.split('/')
-    path = '/'.join(sep[:-1])
-
     # We create the directory if he doesn't exist
     try:
-        os.makedirs(path)
+        os.makedirs(os.path.dirname(fileName))
     except OSError as e:
         # Directory already exist
         pass
