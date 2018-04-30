@@ -57,14 +57,6 @@ def fetchLocalFile(fileName):
     req = requests.get(baseURL + '/' + fileName)
     logRequest(req, baseURL + '/' + fileName)
 
-    # color = bcolors.OKBLUE
-    # if req.status_code == 404:
-    #     color = bcolors.FAIL
-    # elif req.status_code == 403:
-    #     color = bcolors.WARNING
-
-    # print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + '/' + fileName
-
     if req.status_code == 404:
         pass
     elif "image" in req.headers['Content-Type']:
