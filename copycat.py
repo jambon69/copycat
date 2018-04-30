@@ -55,14 +55,15 @@ def fetchLocalFile(fileName):
 
     # Don't take the req parameters into account
     req = requests.get(baseURL + '/' + fileName)
+    logRequest(req, baseURL + '/' + fileName)
 
-    color = bcolors.OKBLUE
-    if req.status_code == 404:
-        color = bcolors.FAIL
-    elif req.status_code == 403:
-        color = bcolors.WARNING
+    # color = bcolors.OKBLUE
+    # if req.status_code == 404:
+    #     color = bcolors.FAIL
+    # elif req.status_code == 403:
+    #     color = bcolors.WARNING
 
-    print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + '/' + fileName
+    # print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + '/' + fileName
 
     if req.status_code == 404:
         pass
@@ -94,6 +95,17 @@ def fetchFiles(filesName):
             fetchLocalFile(getFullPath(filename)[1:])
 
 
+# Basic logging with colors cause it's so fancy \o/
+def logRequest(req, filename):
+    color = bcolors.OKBLUE
+    if req.status_code == 404:
+        color = bcolors.FAIL
+    elif req.status_code == 403:
+        color = bcolors.WARNING
+
+    print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + filename
+
+
 def basicLog(msg, color):
     if len(msg) % 2 != 0:
         msg = "-" + msg
@@ -104,16 +116,11 @@ def change_form_action(url, soup):
     for form in soup.find_all("form"):
         form['action'] = url
 
+
 def main():
     basicLog("Gathering index file", bcolors.OKGREEN)
     req = requests.get(baseURL + extURL)
-    color = bcolors.OKBLUE
-    if req.status_code == 404:
-        color = bcolors.FAIL
-    elif req.status_code == 403:
-        color = bcolors.WARNING
-
-    print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + baseURL + extURL
+    logRequest(req, baseURL + extURL)
 
     soup = BeautifulSoup(req.text, "lxml")
 
