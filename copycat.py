@@ -62,7 +62,7 @@ def fetchLocalFile(fileName):
     elif "image" in req.headers['Content-Type']:
         img = Image.open(BytesIO(req.content))
         img.save(fileName)
-    else:
+    elif fileName[-1] != '/':
         newFile = open(fileName.split('?')[0], 'w+')
         newFile.write(str(req.text.encode('utf-8')))
         newFile.close()
