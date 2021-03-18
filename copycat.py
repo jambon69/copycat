@@ -64,7 +64,7 @@ def fetchLocalFile(fileName):
         img.save(fileName)
     else:
         newFile = open(fileName.split('?')[0], 'w+')
-        newFile.write(req.text.encode('utf-8'))
+        newFile.write(str(req.text.encode('utf-8')))
         newFile.close()
 
 
@@ -95,13 +95,13 @@ def logRequest(req, filename):
     elif req.status_code == 403:
         color = bcolors.WARNING
 
-    print "[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + filename
+    print("[" + color + str(req.status_code) + bcolors.ENDC + "]" + " -- " + filename)
 
 
 def basicLog(msg, color):
     if len(msg) % 2 != 0:
         msg = "-" + msg
-    print color + "-" * ((50-len(msg)) / 2) + msg + "-" * ((50-len(msg)) / 2) + bcolors.ENDC
+    print(color + "-" * int((50-len(msg)) / 2) + msg + "-" * int((50-len(msg)) / 2) + bcolors.ENDC)
 
 
 def change_form_action(url, soup):
@@ -114,7 +114,7 @@ def main():
     req = requests.get(baseURL + extURL)
     logRequest(req, baseURL + extURL)
 
-    soup = BeautifulSoup(req.text, "lxml")
+    soup = BeautifulSoup(req.text, 'html.parser')
 
     # Let's gather all scripts
     basicLog("Gathering scripts", bcolors.OKGREEN)
